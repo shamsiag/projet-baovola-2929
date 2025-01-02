@@ -5,12 +5,12 @@ public class User {
     private String name;
     private String username;
     private String password;
-    private boolean isAdmin;
+    private int isAdmin;
 
     public User() {
     }
 
-    public User(int id, String name, String username, String password, boolean isAdmin) {
+    public User(int id, String name, String username, String password, int isAdmin) {
         this.id = id;
         this.name = name;
         this.username = username;
@@ -50,11 +50,11 @@ public class User {
         this.password = password;
     }
 
-    public boolean isAdmin() {
+    public int isAdmin() {
         return isAdmin;
     }
 
-    public void setAdmin(boolean admin) {
+    public void setAdmin(int admin) {
         isAdmin = admin;
     }
 }

@@ -1,14 +1,17 @@
 {
-  "java.project.sourcePaths": ["src"],
+  "java.project.sourcePaths": [
+    "src"
+  ],
   "java.project.outputPath": "WEB-INF/classes",
   "java.project.referencedLibraries": [
+    "lib/jakarta.servlet-api-5.0.0.jar",
     "/Users/macbookpro/Downloads/apache-tomcat-10.1.15/webapps/projet-baovola-2929/lib/error_prone_annotations-2.27.0.jar",
-    "/Users/macbookpro/Downloads/apache-tomcat-10.1.15/webapps/projet-baovola-2929/lib/servlet-api.jar",
     "/Users/macbookpro/Downloads/apache-tomcat-10.1.15/webapps/projet-baovola-2929/lib/javacpp-macosx-arm64.jar",
     "/Users/macbookpro/Downloads/apache-tomcat-10.1.15/webapps/projet-baovola-2929/lib/javacv.jar",
     "/Users/macbookpro/Downloads/apache-tomcat-10.1.15/webapps/projet-baovola-2929/lib/javacpp.jar",
     "/Users/macbookpro/Downloads/apache-tomcat-10.1.15/webapps/projet-baovola-2929/lib/gson-2.11.0.jar",
     "/Users/macbookpro/Downloads/apache-tomcat-10.1.15/webapps/projet-baovola-2929/lib/opencv-macosx-arm64.jar",
+    "/Users/macbookpro/Downloads/apache-tomcat-10.1.15/webapps/projet-baovola-2929/lib/javax.servlet-api-3.1.0.jar",
     "/Users/macbookpro/Downloads/apache-tomcat-10.1.15/webapps/projet-baovola-2929/lib/opencv.jar"
   ]
 }

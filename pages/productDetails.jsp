@@ -1,4 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+    if (session.getAttribute("userId") == null) {
+        response.sendRedirect("login.jsp");
+        return;
+    }
+%>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,7 +25,7 @@
                 <li><a href="index.jsp">Accueil</a></li>
                 <li><a href="about.jsp">À propos</a></li>
                 <li><a href="contact.jsp">Contact</a></li>
-                <li><a href="login.jsp">Se connecter</a></li>
+                <li><a href="logout.jsp">Se déconnecter</a></li>
                 <li><a href="register.jsp">S'inscrire</a></li>
             </ul>
         </nav>

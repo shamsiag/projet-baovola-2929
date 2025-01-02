@@ -1,4 +1,22 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="assets.UserDAO" %>
+<%@ page session="false" %>
+<%
+    String message = "";
+
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        String name = request.getParameter("fullname");
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        message = UserDAO.registerUser(name, username, password);
+
+        if (message.equals("Inscription réussie. Vous pouvez vous connecter.")) {
+            response.sendRedirect("index.jsp");
+            return; 
+        }
+    }
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,7 +35,7 @@
         <!-- Section droite pour le formulaire d'inscription -->
         <div class="right-section">
             <h2>Créer un compte</h2>
-            <form action="registerAction" method="post">
+            <form action="register.jsp" method="post">
                 <div class="form-group">
                     <label for="fullname">Nom complet :</label>
                     <input type="text" id="fullname" name="fullname" required>

@@ -18,7 +18,8 @@ public class Connexion {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             Connection connection = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD);
-            connection.setAutoCommit(false);
+            connection.setAutoCommit(true);
+            System.out.println("Connexion à la base de données établie.");
             return connection;
         } catch (ClassNotFoundException e) {
             throw new SQLException("Pilote JDBC MySQL non trouvé", e);

@@ -1,4 +1,23 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" import="java.util.*, assets.UserDAO" %>
+<%@ page import="javax.servlet.http.HttpSession" %>
+
+<%@ page session="true" %>
+
+<%
+    if ("POST".equalsIgnoreCase(request.getMethod())) {
+        
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+
+        
+        String redirectPage = UserDAO.loginUser(username, password, session);
+
+       
+        response.sendRedirect(redirectPage);
+        return;
+    }
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,7 +37,7 @@
         <!-- Section droite pour le formulaire de login -->
         <div class="right-section">
             <h2>Connexion</h2>
-            <form action="loginAction" method="post">
+            <form action="login.jsp" method="post">
                 <div class="form-group">
                     <label for="username">Nom d'utilisateur :</label>
                     <input type="text" id="username" name="username" required>
