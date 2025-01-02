@@ -24,6 +24,7 @@
             <ul class="nav-links">
                 <li><a href="index.jsp">Accueil</a></li>
                 <li><a href="productManagement.jsp">Gestion des Produits</a></li>
+                <li><a href="addProduct.jsp">Ajouter un produit</a></li>
                 <li><a href="logout.jsp">Se déconnecter</a></li>
             </ul>
         </nav>

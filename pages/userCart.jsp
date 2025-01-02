@@ -1,18 +1,16 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%
-    if (session.getAttribute("userId") == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
-%>
-
+<%@ page import="assets.UserCart" %>
+<%@ page import="assets.UserCartDAO" %>
+<%@ page import="assets.ProductDAO" %>
+<%@ page import="assets.PriceDAO" %>
+<%@ page session="true" %>
+<%@ page contentType="text/html;charset=UTF-8" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mon Panier - Boutique de Fleurs</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Mon Panier - Boutique de Fleurs</title>
 </head>
 <body>
     <!-- Barre de navigation -->
@@ -23,84 +21,90 @@
             </div>
             <ul class="nav-links">
                 <li><a href="index.jsp">Accueil</a></li>
-                <li><a href="userFavorites.jsp">Mes Favoris</a></li>
-                <li><a href="userCart.jsp">Mon Panier</a></li>
+                <li><a href="productList.jsp">Produits</a></li>
+                <li><a href="cart.jsp">Mon Panier</a></li>
                 <li><a href="logout.jsp">Se déconnecter</a></li>
             </ul>
         </nav>
     </header>
 
-    <!-- Section du panier -->
+    <!-- Contenu principal -->
     <main class="container">
         <h1>Mon Panier</h1>
-        <div class="cart-container">
-            <%
-                java.sql.Connection conn = null;
-                java.sql.PreparedStatement stmt = null;
-                java.sql.ResultSet rs = null;
 
-                // ID de l'utilisateur connecté (à récupérer depuis la session)
-                int userId = (int) session.getAttribute("userId");
-                double totalPrice = 0.0;
+        <%
+            // Récupérer l'ID de l'utilisateur depuis la session
+            Integer userId = (Integer) session.getAttribute("userId");
 
-                try {
-                    // Connexion à la base de données
-                    Class.forName("com.mysql.cj.jdbc.Driver");
-                    conn = java.sql.DriverManager.getConnection("jdbc:mysql://localhost:3306/PROJETBAOVOLA2929", "username", "password");
+            if (userId != null) {
+                // Récupérer les produits dans le panier de l'utilisateur
+                UserCartDAO userCartDAO = new UserCartDAO();
+                List<UserCart> cartItems = userCartDAO.getCartItems(userId);
 
-                    // Requête pour récupérer les produits du panier de l'utilisateur
-                    String query = "SELECT C.ID AS CART_ID, P.ID AS PRODUCT_ID, P.NAME, P.DESCRIPTION, P.PICTURE, C.QUANTITY, P.PRICE " +
-                                   "FROM USER_CART C " +
-                                   "JOIN PRODUCT P ON C.IDPRODUCT = P.ID " +
-                                   "WHERE C.IDUSER = ? AND C.DELETEDAT IS NULL";
+                if (cartItems.isEmpty()) {
+        %>
+                    <p>Votre panier est vide.</p>
+        <%
+                } else {
+        %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Produit</th>
+                                <th>Quantité</th>
+                                <th>Prix Unitaire</th>
+                                <th>Prix Total</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <%
+                                double total = 0;
+                                ProductDAO productDAO = new ProductDAO();
+                                PriceDAO priceDAO = new PriceDAO();
 
-                    stmt = conn.prepareStatement(query);
-                    stmt.setInt(1, userId);
-                    rs = stmt.executeQuery();
+                                for (UserCart cartItem : cartItems) {
+                                    // Récupérer les informations du produit
+                                    Product product = productDAO.getProductById(cartItem.getProductId());
+                                    double price = priceDAO.getLatestPriceForProduct(cartItem.getProductId());
 
-                    // Affichage des produits
-                    while (rs.next()) {
-                        int cartId = rs.getInt("CART_ID");
-                        String productName = rs.getString("NAME");
-                        String productDescription = rs.getString("DESCRIPTION");
-                        String productImage = rs.getString("PICTURE");
-                        int quantity = rs.getInt("QUANTITY");
-                        double price = rs.getDouble("PRICE");
-                        double totalProductPrice = quantity * price;
-                        totalPrice += totalProductPrice;
-            %>
-                        <div class="cart-item">
-                            <img src="<%= productImage != null ? productImage : "default-product.jpg" %>" alt="<%= productName %>">
-                            <h3><%= productName %></h3>
-                            <p><%= productDescription %></p>
-                            <p>Prix unitaire : <%= price %>€</p>
-                            <p>Quantité : <%= quantity %></p>
-                            <p>Prix total : <%= totalProductPrice %>€</p>
-                            <form action="removeFromCart" method="post">
-                                <input type="hidden" name="cartId" value="<%= cartId %>">
-                                <button type="submit" class="btn">Retirer du panier</button>
-                            </form>
-                        </div>
-            <%
-                    }
-            %>
-        </div>
-        <div class="cart-summary">
-            <h2>Total : <%= totalPrice %>€</h2>
-            <form action="checkout" method="post">
-                <button type="submit" class="btn">Passer à la caisse</button>
-            </form>
-        </div>
-            <%
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    out.println("<p>Une erreur est survenue lors du chargement du panier.</p>");
-                } finally {
-                    if (rs != null) rs.close();
-                    if (stmt != null) stmt.close();
-                    if (conn != null) conn.close();
+                                    // Calculer le prix total pour cet élément
+                                    double itemTotalPrice = price * cartItem.getQuantity();
+                                    total += itemTotalPrice;
+                            %>
+                                <tr>
+                                    <td><%= product.getName() %></td>
+                                    <td><%= cartItem.getQuantity() %></td>
+                                    <td><%= price %> €</td>
+                                    <td><%= itemTotalPrice %> €</td>
+                                    <td>
+                                        <!-- Formulaire pour supprimer l'élément du panier -->
+                                        <form action="removeFromCart.jsp" method="post">
+                                            <input type="hidden" name="cartItemId" value="<%= cartItem.getId() %>">
+                                            <button type="submit">Supprimer</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <%
+                                }
+                            %>
+                        </tbody>
+                    </table>
+                    <div class="total">
+                        <h3>Total : <%= total %> €</h3>
+                    </div>
+                    <div class="checkout">
+                        <a href="checkout.jsp" class="button">Passer à la caisse</a>
+                    </div>
+        <%
                 }
-            %>
+            } else {
+        %>
+                <p>Vous devez vous connecter pour voir votre panier.</p>
+        <%
+            }
+        %>
     </main>
+
 </body>
 </html>

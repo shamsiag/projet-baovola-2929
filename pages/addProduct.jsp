@@ -1,9 +1,21 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="java.io.File" %>
+<%@ page language="java" import="java.util.*, assets.*" %>
+<%@ page import="java.io.IOException" %>
+
+<%@ page session="true" %>
 <%
     if (session.getAttribute("userId") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
+
+    Category productService = new Category();
+    List<Category> categories = productService.getAllCategories();
+    request.setAttribute("categories", categories);
+
+    String message = "";
+
 %>
 
 <!DOCTYPE html>
@@ -33,7 +45,10 @@
     <!-- Formulaire d'ajout de produit -->
     <main class="container">
         <h1>Ajouter un produit</h1>
-        <form action="addProductAction" method="post" enctype="multipart/form-data">
+
+         
+
+        <form action="addProductAction.jsp" method="POST" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="productName">Nom du produit :</label>
                 <input type="text" id="productName" name="productName" required>
@@ -49,34 +64,10 @@
             <div class="form-group">
                 <label for="productCategory">Catégorie :</label>
                 <select id="productCategory" name="productCategory" required>
-                    <!-- Catégories à générer dynamiquement depuis la base de données -->
-                    <%
-                        // Exemple de connexion pour récupérer les catégories
-                        java.sql.Connection conn = null;
-                        java.sql.Statement stmt = null;
-                        java.sql.ResultSet rs = null;
-
-                        try {
-                            Class.forName("com.mysql.cj.jdbc.Driver");
-                            conn = java.sql.DriverManager.getConnection("jdbc:mysql://localhost:3306/PROJETBAOVOLA2929", "username", "password");
-                            stmt = conn.createStatement();
-                            rs = stmt.executeQuery("SELECT ID, NAME FROM CATEGORY");
-
-                            while (rs.next()) {
-                                int categoryId = rs.getInt("ID");
-                                String categoryName = rs.getString("NAME");
-                    %>
-                                <option value="<%= categoryId %>"><%= categoryName %></option>
-                    <%
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        } finally {
-                            if (rs != null) rs.close();
-                            if (stmt != null) stmt.close();
-                            if (conn != null) conn.close();
-                        }
-                    %>
+                <option value="" disabled selected>Choisir une catégorie</option>
+                <% for (Category category : categories) { %>
+                <option value="<%= category.getId() %>"><%= category.getName() %></option>
+                 <% } %>
                 </select>
             </div>
             <div class="form-group">

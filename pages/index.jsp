@@ -1,11 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page language="java" import="java.util.*, assets.UserDAO" %>
+<%@ page language="java" import="java.util.*, assets.*" %>
 <%@ page import="javax.servlet.http.HttpSession" %>
 <%
     if (session.getAttribute("userId") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
+    ProductDAO productService = new ProductDAO();
+    List<Product> products = productService.getAllProducts();
+    request.setAttribute("products", products);
 %>
 
 <!DOCTYPE html>
@@ -38,7 +41,7 @@
     <main class="container">
         <!-- Barre de recherche -->
         <div class="search-bar">
-            <form action="searchAction" method="get">
+            <form action="productList.jsp" method="get">
                 <input type="text" name="query" placeholder="Recherchez des fleurs, bouquets..." required>
                 <button type="submit">Rechercher</button>
             </form>
@@ -77,25 +80,16 @@
         <section class="product-cards">
             <h2>Produits en vedette</h2>
             <div class="cards-container">
+                <% 
+                for (Product product : products) { 
+                %>
                 <div class="product-card">
-                    <img src="path/to/product1.jpg" alt="Produit 1">
-                    <h3>Bouquet de Roses</h3>
-                    <p>Prix : 30€</p>
-                    <a href="productDetails.jsp?id=1" class="btn">Voir le produit</a>
+                    <img src="<%= product.getPicture()%>" alt="<%= product.getName() %>">
+                    <h3><%= product.getName() %></h3>
+                    <p><%= product.getPrice() %></p>
+                    <a href="productDetails.jsp?productId=<%= product.getId() %>">Voir les détails</a>
                 </div>
-                <div class="product-card">
-                    <img src="path/to/product2.jpg" alt="Produit 2">
-                    <h3>Orchidée Élégante</h3>
-                    <p>Prix : 45€</p>
-                    <a href="productDetails.jsp?id=2" class="btn">Voir le produit</a>
-                </div>
-                <div class="product-card">
-                    <img src="path/to/product3.jpg" alt="Produit 3">
-                    <h3>Bouquet Mélangé</h3>
-                    <p>Prix : 25€</p>
-                    <a href="productDetails.jsp?id=3" class="btn">Voir le produit</a>
-                </div>
-                <!-- Ajoutez plus de cartes produit si nécessaire -->
+                <% } %>
             </div>
         </section>
     </main>

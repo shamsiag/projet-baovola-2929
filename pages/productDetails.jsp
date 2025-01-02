@@ -1,9 +1,14 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" import="java.util.*, assets.*" %>
+<%@ page import="javax.servlet.http.HttpSession" %>
 <%
+    int productId = Integer.parseInt(request.getParameter("productId"));
     if (session.getAttribute("userId") == null) {
         response.sendRedirect("login.jsp");
         return;
     }
+    ProductDAO productService = new ProductDAO();
+    Product product = productService.getProductById(productId);
 %>
 
 <!DOCTYPE html>
@@ -36,26 +41,26 @@
         <!-- Section des détails du produit -->
         <div class="product-details">
             <div class="product-image">
-                <img src="path/to/your/product-image.jpg" alt="Image du produit">
+                <img src="<%= product.getPicture() %>" alt="Image du produit">
             </div>
             <div class="product-info">
-                <h1>Nom du produit</h1>
-                <p class="price">Prix : 30€</p>
+                <h1><%= product.getName() %></h1>
+                <p class="price"><%= product.getPrice() %></p>
                 <p class="description">
-                    Description : Ce bouquet de roses fraîches est parfait pour toute occasion. Les fleurs sont soigneusement sélectionnées pour garantir leur qualité et leur beauté.
+                <%= product.getDescription() %>
                 </p>
-                <form action="addToCartAction" method="post">
+                <form action="addToCartAction.jsp" method="post">
                     <div class="form-group">
                         <label for="quantity">Quantité :</label>
                         <input type="number" id="quantity" name="quantity" value="1" min="1" required>
                     </div>
-                    <input type="hidden" name="productId" value="1"> <!-- ID du produit -->
+                    <input type="hidden" name="productId" value="<%= product.getId() %>"> <!-- ID du produit -->
                     <button type="submit" class="btn">Ajouter au panier</button>
                 </form>
             </div>
         </div>
 
-        <!-- Section des produits similaires -->
+
         <section class="related-products">
             <h2>Produits similaires</h2>
             <div class="cards-container">
