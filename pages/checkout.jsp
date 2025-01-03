@@ -1,21 +1,46 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="assets.*" %>
+<%@ page import="java.util.List" %>
+<%@ page import="javax.servlet.http.HttpSession" %>
 <%
-    if (session.getAttribute("userId") == null) {
-        response.sendRedirect("login.jsp");
+    // Initialisation
+    String message = "";
+    boolean checkoutSuccess = false;
+
+    if (session == null || session.getAttribute("userId") == null) {
+        response.sendRedirect("login.jsp"); // Redirection vers login si non connecté
         return;
     }
-%>
 
+    int userId = (int) session.getAttribute("userId");
+
+    // Récupérer les articles du panier
+    UserCartDAO cartDAO = new UserCartDAO();
+    List<UserCart> UserCarts = cartDAO.getCartItems(userId);
+
+    if (UserCarts == null || UserCarts.isEmpty()) {
+        message = "Votre panier est vide.";
+    } else if (request.getMethod().equalsIgnoreCase("POST")) {
+        // Effectuer le checkout
+        OrderDAO orderDAO = new OrderDAO();
+        checkoutSuccess = orderDAO.processCheckout(userId, UserCarts);
+
+        if (checkoutSuccess) {
+            message = "Votre commande a été validée avec succès.";
+        } else {
+            message = "Une erreur est survenue lors du traitement de votre commande.";
+        }
+    }
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" type="text/css" href="style.css">
-    <title>Finaliser la commande - Boutique de Fleurs</title>
+    <link rel="stylesheet" href="style.css">
+    <title>Checkout - Boutique de Fleurs</title>
 </head>
 <body>
-    <!-- Barre de navigation -->
     <header>
         <nav class="navbar">
             <div class="logo">
@@ -23,97 +48,41 @@
             </div>
             <ul class="nav-links">
                 <li><a href="index.jsp">Accueil</a></li>
-                <li><a href="userCart.jsp">Mon Panier</a></li>
+                <li><a href="viewCart.jsp">Mon Panier</a></li>
                 <li><a href="logout.jsp">Se déconnecter</a></li>
             </ul>
         </nav>
     </header>
 
-    <!-- Section Checkout -->
     <main class="container">
-        <h1>Finaliser la commande</h1>
-        
-        <!-- Récapitulatif des articles -->
-        <section>
-            <h2>Récapitulatif de votre panier</h2>
-            <div class="cart-summary">
-                <%
-                    java.sql.Connection conn = null;
-                    java.sql.PreparedStatement stmt = null;
-                    java.sql.ResultSet rs = null;
-                    double totalPrice = 0.0;
-                    int userId = (int) session.getAttribute("userId");
+        <h1>Confirmation de la commande</h1>
 
-                    try {
-                        // Connexion à la base de données
-                        Class.forName("com.mysql.cj.jdbc.Driver");
-                        conn = java.sql.DriverManager.getConnection("jdbc:mysql://localhost:3306/PROJETBAOVOLA2929", "username", "password");
+        <% if (!message.isEmpty()) { %>
+            <p class="<%= checkoutSuccess ? "success" : "error" %>"><%= message %></p>
+        <% } %>
 
-                        // Requête pour récupérer les produits dans le panier
-                        String query = "SELECT P.NAME, C.QUANTITY, P.PRICE, (C.QUANTITY * P.PRICE) AS TOTAL " +
-                                       "FROM USER_CART C " +
-                                       "JOIN PRODUCT P ON C.IDPRODUCT = P.ID " +
-                                       "WHERE C.IDUSER = ? AND C.DELETEDAT IS NULL";
-
-                        stmt = conn.prepareStatement(query);
-                        stmt.setInt(1, userId);
-                        rs = stmt.executeQuery();
-
-                        while (rs.next()) {
-                            String productName = rs.getString("NAME");
-                            int quantity = rs.getInt("QUANTITY");
-                            double price = rs.getDouble("PRICE");
-                            double total = rs.getDouble("TOTAL");
-                            totalPrice += total;
-                %>
-                            <div class="cart-item">
-                                <p><strong><%= productName %></strong> (x<%= quantity %>) - Prix unitaire : <%= price %>€ - Total : <%= total %>€</p>
-                            </div>
-                <%
-                        }
-                %>
-                <div class="cart-total">
-                    <h3>Total à payer : <%= totalPrice %>€</h3>
+        <% if (UserCarts != null && !UserCarts.isEmpty() && !checkoutSuccess) { %>
+            <form action="checkout.jsp" method="post">
+                <div class="cart-summary">
+                    <h2>Résumé de votre panier :</h2>
+                    <ul>
+                        <% double total = 0.0; %>
+                        <% for (UserCart item : UserCarts) { %>
+                            <li>
+                                <strong><%= item.getProductName() %></strong> - 
+                                Quantité : <%= item.getQuantity() %> - 
+                                Prix : <%= String.format("%.2f", item.getPrice()) %> €
+                                <% total += item.getPrice() * item.getQuantity(); %>
+                            </li>
+                        <% } %>
+                    </ul>
+                    <h3>Total : <%= String.format("%.2f", total) %> €</h3>
                 </div>
-                <%
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        out.println("<p>Une erreur est survenue lors du chargement du panier.</p>");
-                    } finally {
-                        if (rs != null) rs.close();
-                        if (stmt != null) stmt.close();
-                        if (conn != null) conn.close();
-                    }
-                %>
-            </div>
-        </section>
-
-        <!-- Formulaire de Checkout -->
-        <section>
-            <h2>Informations de livraison et paiement</h2>
-            <form action="placeOrder" method="post">
-                <!-- Adresse de livraison -->
                 <div class="form-group">
-                    <label for="address">Adresse de livraison :</label>
-                    <textarea id="address" name="address" required></textarea>
-                </div>
-
-                <!-- Mode de paiement -->
-                <div class="form-group">
-                    <label for="paymentMethod">Mode de paiement :</label>
-                    <select id="paymentMethod" name="paymentMethod" required>
-                        <option value="credit_card">Carte de crédit</option>
-                        <option value="paypal">PayPal</option>
-                        <option value="cash_on_delivery">Paiement à la livraison</option>
-                    </select>
-                </div>
-
-                <!-- Bouton de validation -->
-                <div class="form-actions">
-                    <button type="submit" class="btn">Finaliser la commande</button>
+                    <button type="submit">Confirmer la commande</button>
                 </div>
             </form>
-        </section>
+        <% } %>
     </main>
 </body>
 </html>

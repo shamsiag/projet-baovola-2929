@@ -7,6 +7,7 @@ public class UserCart {
     private int userId;
     private int productId;
     private int quantity;
+    private double price;
     private LocalDateTime addedOn;
     private LocalDateTime deletedAt;
     private LocalDateTime boughtOn;
@@ -14,7 +15,8 @@ public class UserCart {
     public UserCart() {
     }
 
-    public UserCart(int id, int userId, int productId, int quantity, LocalDateTime addedOn, LocalDateTime deletedAt, LocalDateTime boughtOn) {
+    public UserCart(int id, int userId, int productId, int quantity, LocalDateTime addedOn, LocalDateTime deletedAt,
+            LocalDateTime boughtOn) {
         this.id = id;
         this.userId = userId;
         this.productId = productId;
@@ -22,6 +24,18 @@ public class UserCart {
         this.addedOn = addedOn;
         this.deletedAt = deletedAt;
         this.boughtOn = boughtOn;
+    }
+
+    public UserCart(int id, int userId, int productId, int quantity, LocalDateTime addedOn, LocalDateTime deletedAt,
+            LocalDateTime boughtOn, double price) {
+        this.id = id;
+        this.userId = userId;
+        this.productId = productId;
+        this.quantity = quantity;
+        this.addedOn = addedOn;
+        this.deletedAt = deletedAt;
+        this.boughtOn = boughtOn;
+        this.price = price;
     }
 
     public int getId() {
@@ -78,5 +92,13 @@ public class UserCart {
 
     public void setBoughtOn(LocalDateTime boughtOn) {
         this.boughtOn = boughtOn;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public double getPrice() {
+        return price;
     }
 }

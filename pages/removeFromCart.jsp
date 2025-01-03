@@ -12,11 +12,11 @@
         boolean success = userCartDAO.removeProductFromCart(cartItemId);
 
         if (success) {
-            response.sendRedirect("cart.jsp");
+            response.sendRedirect("userCart.jsp");
         } else {
             out.println("<p>Une erreur est survenue lors de la suppression de l'article.</p>");
         }
     } else {
-        response.sendRedirect("cart.jsp");
+        response.sendRedirect("userCart.jsp");
     }
 %>

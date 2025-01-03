@@ -1,7 +1,5 @@
-<%@ page import="assets.UserCart" %>
-<%@ page import="assets.UserCartDAO" %>
-<%@ page import="assets.ProductDAO" %>
-<%@ page import="assets.PriceDAO" %>
+<%@ page import="assets.*" %>
+<%@ page import="java.util.List" %>
 <%@ page session="true" %>
 <%@ page contentType="text/html;charset=UTF-8" %>
 <!DOCTYPE html>
