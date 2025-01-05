@@ -19,7 +19,6 @@ public class OrderGlobal {
         this.totalValue = totalValue;
         this.status = status;
     }
-
     public int getId() {
         return id;
     }

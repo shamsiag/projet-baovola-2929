@@ -100,4 +100,108 @@ public class OrderGlobalDAO {
         }
     }
 
+    public List<OrderGlobal> getAllOrdersWithStatus() throws SQLException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        List<OrderGlobal> orders = new ArrayList<>();
+
+        try {
+            conn = Connexion.connectToDatabase();
+            String sql = "SELECT OG.ID, OG.IDUSER, OG.ORDERDATE, OG.TOTALVALUE, OG.STATUS " +
+                    "FROM ORDER_GLOBAL OG " +
+                    "ORDER BY OG.ORDERDATE DESC";
+            ps = conn.prepareStatement(sql);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                orders.add(new OrderGlobal(
+                        rs.getInt("ID"),
+                        rs.getInt("IDUSER"),
+                        rs.getTimestamp("ORDERDATE").toLocalDateTime(),
+                        rs.getDouble("TOTALVALUE"),
+                        rs.getInt("STATUS")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (rs != null)
+                rs.close();
+            if (ps != null)
+                ps.close();
+            if (conn != null)
+                conn.close();
+        }
+        return orders;
+    }
+
+    public List<OrderGlobal> getOrdersByStatus(int status) throws SQLException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        List<OrderGlobal> orders = new ArrayList<>();
+
+        try {
+            conn = Connexion.connectToDatabase();
+            String sql = "SELECT OG.ID, OG.IDUSER, OG.ORDERDATE, OG.TOTALVALUE, OG.STATUS " +
+                    "FROM ORDER_GLOBAL OG WHERE OG.STATUS = ? ORDER BY OG.ORDERDATE DESC";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, status);
+            rs = ps.executeQuery();
+
+            while (rs.next()) {
+                orders.add(new OrderGlobal(
+                        rs.getInt("ID"),
+                        rs.getInt("IDUSER"),
+                        rs.getTimestamp("ORDERDATE").toLocalDateTime(),
+                        rs.getDouble("TOTALVALUE"),
+                        rs.getInt("STATUS")));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (rs != null)
+                rs.close();
+            if (ps != null)
+                ps.close();
+            if (conn != null)
+                conn.close();
+        }
+        return orders;
+    }
+
+    public OrderGlobal getOrderGlobalWithDetailsById(int orderId) throws SQLException {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
+        try {
+            conn = Connexion.connectToDatabase();
+            String sql = "SELECT OG.ID, OG.IDUSER, OG.ORDERDATE, OG.TOTALVALUE, OG.STATUS " +
+                    "FROM ORDER_GLOBAL OG WHERE OG.ID = ?";
+            ps = conn.prepareStatement(sql);
+            ps.setInt(1, orderId);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                return new OrderGlobal(
+                        rs.getInt("ID"),
+                        rs.getInt("IDUSER"),
+                        rs.getTimestamp("ORDERDATE").toLocalDateTime(),
+                        rs.getDouble("TOTALVALUE"),
+                        rs.getInt("STATUS"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            if (rs != null)
+                rs.close();
+            if (ps != null)
+                ps.close();
+            if (conn != null)
+                conn.close();
+        }
+        return null;
+    }
+
 }

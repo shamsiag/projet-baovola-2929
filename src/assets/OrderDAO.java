@@ -122,7 +122,7 @@ public class OrderDAO {
             }
 
             // Récupérer l'ID de la commande globale créée
-            String sqlLastInsertId = "SELECT LAST_INSERT_ID()";
+            String sqlLastInsertId = "SELECT ID FROM ORDER_GLOBAL ORDER BY ID DESC LIMIT 1";
             int globalOrderId;
 
             try (Statement stmt = conn.createStatement();
@@ -197,4 +197,6 @@ public class OrderDAO {
                 conn.close();
         }
     }
+
+    
 }
