@@ -105,14 +105,16 @@ public class OrderDAO {
         PreparedStatement psCart = null;
 
         try {
-            conn = Connexion.connectToDatabase();// Start transaction
+            conn = Connexion.connectToDatabase();
+            conn.setAutoCommit(false); // Start transaction
 
             // Créer une commande globale
             OrderGlobalDAO orderGlobalDAO = new OrderGlobalDAO();
+            ProductDAO productDAO = new ProductDAO();
             double totalValue = cartItems.stream()
-                    .mapToDouble(item -> item.getPrice() * item.getQuantity())
+                    .mapToDouble(item -> productDAO.getProductById(item.getProductId()).getPrice() * item.getQuantity())
                     .sum();
-            boolean globalOrderCreated = orderGlobalDAO.createOrderGlobal(userId, totalValue, 1);
+            boolean globalOrderCreated = orderGlobalDAO.createOrderGlobal(userId, totalValue, 1, conn);
 
             if (!globalOrderCreated) {
                 conn.rollback();
@@ -121,48 +123,78 @@ public class OrderDAO {
 
             // Récupérer l'ID de la commande globale créée
             String sqlLastInsertId = "SELECT LAST_INSERT_ID()";
+            int globalOrderId;
+
             try (Statement stmt = conn.createStatement();
                     ResultSet rs = stmt.executeQuery(sqlLastInsertId)) {
                 if (!rs.next()) {
                     conn.rollback();
                     return false;
                 }
-                int globalOrderId = rs.getInt(1);
-
-                // Créer des commandes individuelles pour chaque article
-                String sqlInsertOrder = "INSERT INTO `ORDER` (IDUSER, IDCART, PARENTORDER) VALUES (?, ?, ?)";
-                psOrder = conn.prepareStatement(sqlInsertOrder);
-
-                for (UserCart item : cartItems) {
-                    psOrder.setInt(1, userId);
-                    psOrder.setInt(2, item.getId());
-                    psOrder.setInt(3, globalOrderId);
-                    psOrder.addBatch();
-                }
-                psOrder.executeBatch();
-
-                // Marquer les articles du panier comme achetés
-                String sqlUpdateCart = "UPDATE USER_CART SET BOUGHTON = ? WHERE ID = ?";
-                psCart = conn.prepareStatement(sqlUpdateCart);
-                for (UserCart item : cartItems) {
-                    psCart.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
-                    psCart.setInt(2, item.getId());
-                    psCart.addBatch();
-                }
-                psCart.executeBatch();
-
-                conn.commit();
-                return true;
+                globalOrderId = rs.getInt(1);
+                System.out.println("Global Order ID created: " + globalOrderId);
             }
+
+            // Vérifier les stocks
+            for (UserCart item : cartItems) {
+                int availableStock = StockMovementDAO.getAvailableStock(item.getProductId());
+                if (availableStock < item.getQuantity()) {
+                    conn.rollback();
+                    throw new SQLException("Stock insuffisant pour le produit ID: " + item.getProductId());
+                }
+            }
+
+            // Créer des commandes individuelles pour chaque article
+            String sqlInsertOrder = "INSERT INTO `ORDER` (IDUSER, IDCART, PARENTORDER) VALUES (?, ?, ?)";
+            psOrder = conn.prepareStatement(sqlInsertOrder);
+
+            for (UserCart item : cartItems) {
+                psOrder.setInt(1, userId);
+                psOrder.setInt(2, item.getId());
+                psOrder.setInt(3, globalOrderId);
+                psOrder.addBatch();
+            }
+            psOrder.executeBatch();
+
+            // Mettre à jour le stock et enregistrer les mouvements
+            for (UserCart item : cartItems) {
+                boolean stockUpdated = StockMovementDAO.removeStock(item.getProductId(), item.getQuantity());
+                if (!stockUpdated) {
+                    conn.rollback();
+                    throw new SQLException(
+                            "Erreur lors de la mise à jour du stock pour le produit ID: " + item.getProductId());
+                }
+            }
+
+            // Marquer les articles du panier comme achetés
+            String sqlUpdateCart = "UPDATE USER_CART SET BOUGHTON = ? WHERE ID = ?";
+            psCart = conn.prepareStatement(sqlUpdateCart);
+            for (UserCart item : cartItems) {
+                psCart.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
+                psCart.setInt(2, item.getId());
+                psCart.addBatch();
+            }
+            psCart.executeBatch();
+
+            conn.commit();
+            return true;
         } catch (SQLException e) {
             e.printStackTrace();
-            try {
-                if (conn != null)
+            if (conn != null) {
+                try {
                     conn.rollback();
-            } catch (SQLException rollbackEx) {
-                rollbackEx.printStackTrace();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
             }
             return false;
+        } finally {
+            if (psOrder != null)
+                psOrder.close();
+            if (psCart != null)
+                psCart.close();
+            if (conn != null)
+                conn.close();
         }
     }
 }

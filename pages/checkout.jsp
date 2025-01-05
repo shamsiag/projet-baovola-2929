@@ -4,32 +4,24 @@
 <%@ page import="javax.servlet.http.HttpSession" %>
 <%
     // Initialisation
-    String message = "";
-    boolean checkoutSuccess = false;
+    String message = (String) request.getAttribute("message");
+    boolean checkoutSuccess = request.getAttribute("checkoutSuccess") != null
+            && (boolean) request.getAttribute("checkoutSuccess");
+    Product temp = new Product();
+    ProductDAO productDAO = new ProductDAO();
 
     if (session == null || session.getAttribute("userId") == null) {
-        response.sendRedirect("login.jsp"); // Redirection vers login si non connecté
+        response.sendRedirect("login.jsp"); 
         return;
     }
 
     int userId = (int) session.getAttribute("userId");
 
-    // Récupérer les articles du panier
     UserCartDAO cartDAO = new UserCartDAO();
     List<UserCart> UserCarts = cartDAO.getCartItems(userId);
 
     if (UserCarts == null || UserCarts.isEmpty()) {
         message = "Votre panier est vide.";
-    } else if (request.getMethod().equalsIgnoreCase("POST")) {
-        // Effectuer le checkout
-        OrderDAO orderDAO = new OrderDAO();
-        checkoutSuccess = orderDAO.processCheckout(userId, UserCarts);
-
-        if (checkoutSuccess) {
-            message = "Votre commande a été validée avec succès.";
-        } else {
-            message = "Une erreur est survenue lors du traitement de votre commande.";
-        }
     }
 %>
 <!DOCTYPE html>
@@ -57,22 +49,25 @@
     <main class="container">
         <h1>Confirmation de la commande</h1>
 
-        <% if (!message.isEmpty()) { %>
-            <p class="<%= checkoutSuccess ? "success" : "error" %>"><%= message %></p>
+        <% if (message != null && !message.isEmpty()) { %>
+        <p class="<%= checkoutSuccess ? "success" : "error" %>"><%= message %></p>
         <% } %>
 
+
         <% if (UserCarts != null && !UserCarts.isEmpty() && !checkoutSuccess) { %>
-            <form action="checkout.jsp" method="post">
+            <form action="checkoutAction.jsp" method="post">
                 <div class="cart-summary">
                     <h2>Résumé de votre panier :</h2>
                     <ul>
                         <% double total = 0.0; %>
-                        <% for (UserCart item : UserCarts) { %>
+                        <% for (UserCart item : UserCarts) { 
+                            temp=productDAO.getProductById(item.getProductId());
+                            %>
                             <li>
-                                <strong><%= item.getProductName() %></strong> - 
+                                <strong><%= temp.getName() %></strong> - 
                                 Quantité : <%= item.getQuantity() %> - 
-                                Prix : <%= String.format("%.2f", item.getPrice()) %> €
-                                <% total += item.getPrice() * item.getQuantity(); %>
+                                Prix : <%= String.format("%.2f", temp.getPrice()) %> €
+                                <% total += temp.getPrice() * item.getQuantity(); %>
                             </li>
                         <% } %>
                     </ul>

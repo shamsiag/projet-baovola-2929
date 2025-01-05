@@ -48,6 +48,7 @@
                 <p class="price"><%= product.getPrice() %></p>
                 <p class="description">
                 <%= product.getDescription() %>
+                <p>Stock disponible : <%= StockMovementDAO.getAvailableStock(product.getId()) %></p>
                 </p>
                 <form action="addToCartAction.jsp" method="post">
                     <div class="form-group">

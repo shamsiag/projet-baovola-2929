@@ -7,8 +7,7 @@ import java.util.List;
 
 public class OrderGlobalDAO {
 
-    public boolean createOrderGlobal(int userId, double totalValue, int status) throws SQLException {
-        Connection conn = Connexion.connectToDatabase();
+    public boolean createOrderGlobal(int userId, double totalValue, int status, Connection conn) throws SQLException {
         PreparedStatement ps = null;
 
         try {

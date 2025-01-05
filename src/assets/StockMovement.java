@@ -2,22 +2,15 @@ package assets;
 
 import java.time.LocalDateTime;
 
+
 public class StockMovement {
     private int id;
     private int productId;
-    private LocalDateTime LocalDateTimeMovement;
+    private LocalDateTime dateMovement;
     private int quantity;
+    private String movementType;
 
-    public StockMovement() {
-    }
-
-    public StockMovement(int id, int productId, LocalDateTime LocalDateTimeMovement, int quantity) {
-        this.id = id;
-        this.productId = productId;
-        this.LocalDateTimeMovement = LocalDateTimeMovement;
-        this.quantity = quantity;
-    }
-
+    // Getters et setters
     public int getId() {
         return id;
     }
@@ -34,12 +27,12 @@ public class StockMovement {
         this.productId = productId;
     }
 
-    public LocalDateTime getLocalDateTimeMovement() {
-        return LocalDateTimeMovement;
+    public LocalDateTime getDateMovement() {
+        return dateMovement;
     }
 
-    public void setLocalDateTimeMovement(LocalDateTime LocalDateTimeMovement) {
-        this.LocalDateTimeMovement = LocalDateTimeMovement;
+    public void setDateMovement(LocalDateTime dateMovement) {
+        this.dateMovement = dateMovement;
     }
 
     public int getQuantity() {
@@ -48,5 +41,13 @@ public class StockMovement {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public String getMovementType() {
+        return movementType;
+    }
+
+    public void setMovementType(String movementType) {
+        this.movementType = movementType;
     }
 }
